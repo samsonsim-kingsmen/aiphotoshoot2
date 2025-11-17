@@ -1,0 +1,7 @@
+{
+  "name": "GenAI Photobooth V3 Final",
+  "description": "A web application that uses your camera to take a photo and transforms it into a high-fashion retro photoshoot using the Gemini API.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
