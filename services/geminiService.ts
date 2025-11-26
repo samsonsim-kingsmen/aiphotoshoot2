@@ -3,142 +3,157 @@ import { GoogleGenAI, Modality } from "@google/genai";
 const BASE_PROMPT_PRE = `Generate a new image in a vertical, portrait aspect ratio (9:16). The main subject's face must be centrally composed and fully visible within the frame, ensuring it is not cut off at the edges. Analyze the person or people in this photo. It is absolutely crucial that the final image contains the exact same number of people as the original photo; do not add or remove anyone. You must retain ALL of each person's original features, including their face, skin tone, and gender presentation. Pay special attention to the hair; the hairstyle and hair color for every person must be preserved *exactly* as they appear in the original photo. Do NOT alter their facial features or makeup. The only changes should be to their clothing and the background scene. The final image must not contain any text, logos, or words.`;
 
 const themeVariants = {
-  "1970s Disco": {
-    backgrounds: [
-      "a vibrant nightclub with a sparkling disco ball and neon lights",
-      "a retro roller rink with a brightly lit, flashing floor",
-      "a glamorous city street at night with vintage cars reflecting the city lights",
-    ],
-    outfits: [
-      "a dazzling sequined jumpsuit with dramatic flared legs",
-      "a chic metallic halter top paired with high-waisted, wide-leg pants",
-      "a shimmering, shiny wrap dress that catches the light",
-    ],
-    accessories: [
-      "bold, oversized hoop earrings",
-      "a chunky, eye-catching statement necklace",
-      "sky-high platform heels",
-    ],
-  },
+  /* ============================
+     🌈 1970s — PAST
+     ============================ */
+
   "1970s Funk": {
     backgrounds: [
-      "an urban city street with vibrant, colorful graffiti murals",
-      "a lively music stage with dramatic, bright spotlights",
-      "a cool, retro-style room with a shag carpet and bold, funky furniture",
+      "a retro diner with polished chrome counters and a classic checkerboard floor, glowing under warm vintage lighting",
+      "a lively city street lined with glowing theatre marquees and neon signage",
+      "an old-school recording studio with rich wooden panels, analog equipment, and soft amber lights"
     ],
     outfits: [
-      "a brightly colored suit with flamboyant wide-leg pants",
-      "a groovy patterned shirt with a large collar and classic bell-bottoms",
-      "a bold-print dress cinched with a wide statement belt",
+      "a boldly patterned flared ensemble made with glossy, high-shine fabrics that catch the light",
+      "a metallic-toned outfit paired with iconic platform shoes and a dramatic wide collar",
+      "a silky satin two-piece suit featuring vibrant geometric prints and exaggerated proportions"
     ],
     accessories: [
-      "fashionable, oversized sunglasses",
-      "a stylish, wide-brimmed hat",
-      "chunky, confidence-boosting platform shoes",
-    ],
+      "tinted retro sunglasses with oversized frames",
+      "chunky gold jewelry that adds confident flair",
+      "a patterned scarf or belt styled for a touch of expressive funk energy"
+    ]
   },
+
+  "1970s Disco": {
+    backgrounds: [
+      "a nostalgic roller rink illuminated by multicolored spotlights reflecting across the glossy floor",
+      "a shimmering dance floor crowned with a mirrored disco ball scattering light in all directions",
+      "a nightclub stage filled with bright backlights and haze, evoking classic disco glamour"
+    ],
+    outfits: [
+      "a shimmering jumpsuit made of reflective fabric that moves dramatically under stage lighting",
+      "a bold metallic outfit with an open neckline and flowing lines",
+      "a two-piece ensemble adorned with sequins that sparkle from every angle"
+    ],
+    accessories: [
+      "mirror-inspired jewelry with dazzling highlights",
+      "glitter accents or makeup reflecting the era’s iconic aesthetic",
+      "a wide, attention-grabbing statement belt cinched at the waist"
+    ]
+  },
+
   "1970s Bohemian": {
     backgrounds: [
-      "a sun-drenched, airy room filled with lush plants and artistic macrame wall hangings",
-      "a dreamy field of wildflowers during the golden hour of sunset",
-      "a cozy and eclectic living room decorated with vintage textiles and artisan crafts",
+      "a cozy artist loft filled with draped tapestries, handcrafted rugs, and warm natural textures",
+      "a serene garden patio with fluttering fabrics and dappled sunlight",
+      "a vintage living room decorated with thriving houseplants and woven textiles"
     ],
     outfits: [
-      "a comfortable linen outfit with elegant, layered drapes",
-      "a unique patterned ensemble featuring intricate embroidery",
-      "stylish, earth-tone attire with rich, woven textures",
+      "a flowing linen ensemble with soft, layered drapes",
+      "a beautifully patterned outfit featuring delicate embroidery and artisanal details",
+      "an earth-toned attire crafted with rich woven textures and natural fibers"
     ],
     accessories: [
-      "beautiful, unique handmade jewelry",
-      "a chic, intricately woven bag",
-      "a versatile and stylish fabric wrap",
-    ],
+      "unique, handmade jewelry created from natural materials",
+      "a woven shoulder bag that complements the earthy palette",
+      "a lightweight fabric wrap that adds comfortable elegance"
+    ]
   },
+
   "1970s Hippy": {
     backgrounds: [
-      "a peaceful, serene meadow at sunset",
-      "a bustling festival field dotted with tents and vibrant flags",
-      "a relaxing beach bonfire scene at dusk",
+      "a peaceful meadow glowing warmly at sunset",
+      "a relaxed festival field dotted with colorful tents and wandering crowds",
+      "a cozy beach bonfire scene at dusk with flickering firelight"
     ],
     outfits: [
-      "a classic tie-dye outfit made from soft, comfortable cotton",
-      "a cool patchwork denim jacket paired with a fringed top",
-      "light, airy woven clothing adorned with beads",
+      "a soft cotton tie-dye outfit in swirling vibrant colors",
+      "a patchwork denim look paired with a classic fringed top",
+      "light, breathable woven clothing accented with earthy beads"
     ],
     accessories: [
-      "iconic round sunglasses",
-      "layers of colorful, beaded necklaces",
-      "a collection of hand-woven bracelets",
-    ],
+      "classic round sunglasses in true hippy style",
+      "layers of colorful beaded necklaces",
+      "a collection of hand-woven bracelets stacked with intention"
+    ]
   },
+
+  /* ============================
+     🚀 2070s — FUTURE
+     ============================ */
+
   "2070s Cyberpunk": {
     backgrounds: [
-      "a futuristic city street with towering digital billboards and autonomous delivery drones",
-      "a busy subway station filled with interactive holographic signage",
-      "a high-tech café with efficient robotic servers and glowing tabletop screens",
+      "a bustling futuristic city street lined with towering digital billboards and rapid autonomous delivery drones",
+      "a neon-lit subway station filled with animated holographic signage and sleek architecture",
+      "a modern café operated by efficient robotic servers with glowing tabletop interfaces"
     ],
     outfits: [
-      "a functional techwear outfit with sleek, reflective seams",
-      "a layered streetwear suit with sharp metallic trim",
-      "a stylish, asymmetric jacket with glowing, integrated lines",
+      "a sleek techwear ensemble with reflective seam lines and functional utility panels",
+      "a layered futurist streetwear suit trimmed with polished metallic accents",
+      "an asymmetric jacket featuring embedded glowing circuitry details"
     ],
     accessories: [
-      "a sophisticated digital wrist device",
-      "cool, minimalist visor glasses",
-      "a subtle, luminescent tattoo",
-    ],
+      "a sophisticated digital wrist interface device",
+      "minimalist visor-style glasses with subtle illumination",
+      "a glowing luminescent tattoo that pulses softly with light"
+    ]
   },
+
   "2070s Cyborg": {
     backgrounds: [
-      "a cutting-edge gym with advanced robotic trainers and interactive sensor walls",
-      "a sterile, modern hospital lab with fully automated machines",
-      "a minimalist office environment with AI-controlled workstations",
+      "an advanced training facility equipped with robotic fitness systems and reactive sensor walls",
+      "a pristine medical laboratory filled with automated machines and translucent display monitors",
+      "a minimalist corporate workspace controlled entirely by AI-driven systems"
     ],
     outfits: [
-      "a form-fitting biomechanical suit with polished alloy panels",
-      "lightweight synthetic armor with soft, articulated plating",
-      "a durable composite suit made with a carbon mesh",
+      "a fitted biomechanical suit composed of lightweight alloy plates and flexible joints",
+      "a streamlined synthetic armor set featuring soft, articulated plating",
+      "a durable composite suit constructed with carbon-mesh reinforcement"
     ],
     accessories: [
-      "a slim, elegant neural interface band",
-      "a non-intrusive mechanical limb piece",
-      "a discreet, glowing light implant",
-    ],
+      "a slim neural-interface headband designed for seamless control",
+      "a subtle mechanical limb augmentation",
+      "a small integrated light implant emitting a soft glow"
+    ]
   },
+
   "2070s Y3K": {
     backgrounds: [
-      "a sophisticated art gallery featuring interactive holographic art",
-      "a luxurious airport lounge with self-moving chairs and smart windows",
-      "a high-end storefront displaying floating, projected clothing",
+      "a high-end gallery showcasing interactive holographic installations and sculptural displays",
+      "a luxurious next-gen airport lounge featuring self-moving seating and adaptive smart windows",
+      "a futuristic storefront where digital garments float as projected holograms"
     ],
     outfits: [
-      "a sculptural, monochrome outfit with clean, architectural lines",
-      "a minimal silver ensemble with precise, elegant folds",
-      "structured attire made from a high-tech, matte fabric",
+      "a sculptural monochrome outfit defined by clean, architectural silhouettes",
+      "a precise, minimal silver ensemble with elegant folded structures",
+      "a structured ensemble crafted from advanced matte-performance fabrics"
     ],
     accessories: [
-      "bold, geometric jewelry",
-      "a sleek, transparent visor",
-      "a seamless, modern belt",
-    ],
+      "bold geometric jewelry in sleek futuristic shapes",
+      "a transparent visor with a polished, modern curve",
+      "a seamless, minimalist belt designed for utility and style"
+    ]
   },
+
   "2070s Holographic": {
     backgrounds: [
-      "a grand mall atrium with shifting, ambient light projections",
-      "a state-of-the-art concert hall with stunning holographic performers",
-      "a serene park at night with glowing, bioluminescent plants",
+      "a grand shopping atrium illuminated by shifting ambient holographic projections",
+      "a state-of-the-art performance hall featuring fully holographic artists",
+      "a tranquil futuristic park glowing with bioluminescent plants and reflective surfaces"
     ],
     outfits: [
-      "an ethereal, iridescent layered outfit that shimmers with movement",
-      "a reflective suit with gradient tones that mimic liquid metal",
-      "a semi-transparent attire that emits a soft, internal glow",
+      "an ethereal iridescent layered outfit that ripples with movement",
+      "a reflective gradient-toned suit that mimics liquid metal",
+      "a semi-transparent glowing ensemble emitting a soft internal radiance"
     ],
     accessories: [
-      "a delicate holographic pendant",
-      "minimalist, transparent armbands",
-      "subtle, shimmering accent details",
-    ],
-  },
+      "a delicate holographic pendant that refracts light",
+      "minimalist transparent armbands with clean futuristic lines",
+      "subtle shimmering accent details layered for depth"
+    ]
+  }
 };
 
 const getRandomElement = <T>(arr: T[]): T => {

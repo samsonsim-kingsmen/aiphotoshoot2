@@ -11,13 +11,23 @@ import KeywordSelector from './components/KeywordSelector';
 import DualResultView from './components/DualResultView';
 import LandingPage from './components/LandingPage';
 
-const loadingMessages = [
-    "Analyzing your vibe...",
-    "Warming up the AI stylist...",
-    "Generating retro reality...",
-    "Crafting a futuristic vision...",
-    "Saving your masterpiece...",
-    "Almost ready for your debut..."
+// 🔹 Loading messages for AI transformation
+const loadingMessagesAI = [
+  "Analyzing your vibe...",
+  "Warming up the AI stylist...",
+  "Generating retro reality...",
+  "Crafting a futuristic vision...",
+  "Saving your masterpiece...",
+  "Almost ready for your debut..."
+];
+
+// 🔹 Loading messages for QR / final save
+const loadingMessagesQR = [
+  "Saving your final image...",
+  "Uploading your masterpiece...",
+  "Generating your download link...",
+  "Preparing your QR code...",
+  "Almost done..."
 ];
 
 const App = () => {
@@ -28,6 +38,9 @@ const App = () => {
   const [finalImage, setFinalImage] = useState<string | null>(null);
   const [finalImageUrl, setFinalImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // 🔹 Track what kind of loading is happening: AI generation or QR/save
+  const [loadingType, setLoadingType] = useState<"AI" | "QR">("AI");
 
   const calculateWinningThemes = (selectedKeywords: string[]) => {
     const scores = {
@@ -60,7 +73,10 @@ const App = () => {
 
     // Find the theme with the highest score in each category
     const findTopTheme = (themeScores: Record<string, number>) => {
-        return Object.entries(themeScores).reduce((top, current) => current[1] > top[1] ? current : top, ['', -1])[0];
+      return Object.entries(themeScores).reduce(
+        (top, current) => current[1] > top[1] ? current : top,
+        ['', -1]
+      )[0];
     };
     
     const winningRetro = findTopTheme(scores.retro);
@@ -68,8 +84,8 @@ const App = () => {
 
     // Fallback to first theme if no keywords match
     return {
-        retro: winningRetro || retroThemes[0],
-        future: winningFuture || futureThemes[0],
+      retro: winningRetro || retroThemes[0],
+      future: winningFuture || futureThemes[0],
     };
   };
 
@@ -92,8 +108,11 @@ const App = () => {
   };
 
   const handleCompositeUpload = async (compositeImage: string) => {
+    // 🔹 This is the QR / final save phase
+    setLoadingType("QR");
     setAppState(AppState.LOADING);
     setError(null);
+
     try {
       const downloadUrl = await uploadImage(compositeImage);
       setFinalImage(compositeImage);
@@ -125,6 +144,8 @@ const App = () => {
   const handleGenerate = useCallback(async () => {
     if (!capturedImage || !winningThemes) return;
 
+    // 🔹 This is the AI transformation phase
+    setLoadingType("AI");
     setAppState(AppState.LOADING);
     setError(null);
 
@@ -136,8 +157,8 @@ const App = () => {
       ]);
       
       setGeneratedImages([
-          `data:image/jpeg;base64,${retroResult}`,
-          `data:image/jpeg;base64,${futureResult}`
+        `data:image/jpeg;base64,${retroResult}`,
+        `data:image/jpeg;base64,${futureResult}`
       ]);
       setAppState(AppState.DUAL_RESULT);
     } catch (err) {
@@ -151,10 +172,13 @@ const App = () => {
     switch (appState) {
       case AppState.LANDING:
         return <LandingPage onEnter={handleEnter} />;
+
       case AppState.KEYWORD_SELECTION:
         return <KeywordSelector onKeywordsSelect={handleKeywordsSelect} />;
+
       case AppState.CAMERA:
         return <CameraView onCapture={handleCapture} />;
+
       case AppState.EDIT:
         return (
           <PhotoEditor
@@ -164,19 +188,26 @@ const App = () => {
             error={error}
           />
         );
+
       case AppState.LOADING:
-        return <Loader messages={loadingMessages} />;
+        return (
+          <Loader
+            messages={loadingType === "AI" ? loadingMessagesAI : loadingMessagesQR}
+          />
+        );
+
       case AppState.DUAL_RESULT:
         return (
-            <DualResultView 
-                image1={generatedImages![0]}
-                image2={generatedImages![1]}
-                retroTheme={winningThemes!.retro}
-                futureTheme={winningThemes!.future}
-                onCapture={handleCompositeUpload}
-                error={error}
-            />
+          <DualResultView 
+            image1={generatedImages![0]}
+            image2={generatedImages![1]}
+            retroTheme={winningThemes!.retro}
+            futureTheme={winningThemes!.future}
+            onCapture={handleCompositeUpload}
+            error={error}
+          />
         );
+
       case AppState.RESULT:
         return (
           <ResultView
@@ -186,6 +217,7 @@ const App = () => {
             onGoBack={handleBackToSelection}
           />
         );
+
       default:
         return <LandingPage onEnter={handleEnter} />;
     }
@@ -193,9 +225,9 @@ const App = () => {
 
   return (
     <div className="h-full flex flex-col items-center justify-center">
-        <main className="h-full aspect-[9/16] bg-black border border-white/10 overflow-hidden relative">
-            {renderContent()}
-        </main>
+      <main className="h-full aspect-[9/16] bg-black border border-white/10 overflow-hidden relative">
+        {renderContent()}
+      </main>
     </div>
   );
 };
