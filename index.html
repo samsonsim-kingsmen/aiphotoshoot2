@@ -1,62 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Fashion Photoshoot</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        html, body, #root {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #000000;
-        }
-        .font-orbitron {
-            font-family: 'Orbitron', sans-serif;
-        }
-        @keyframes portal-glow {
-            0%, 100% {
-                box-shadow: 0 0 15px rgba(232, 121, 249, 0.3), 
-                            0 0 25px rgba(232, 121, 249, 0.2);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(232, 121, 249, 0.5), 
-                            0 0 40px rgba(232, 121, 249, 0.4);
-            }
-        }
-        .portal-animation {
-            animation: portal-glow 4s ease-in-out infinite;
-        }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
-    "firebase/storage": "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
-    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1"
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Fashion Photoshoot</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body, #root {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #000000;
+    }
+
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* (optional) keep original keyframes if you use them elsewhere */
+    @keyframes portal-glow {
+      0%, 100% {
+        box-shadow: 0 0 15px rgba(232, 121, 249, 0.3),
+                    0 0 25px rgba(232, 121, 249, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 25px rgba(232, 121, 249, 0.5),
+                    0 0 40px rgba(232, 121, 249, 0.4);
+      }
+    }
+
+    /* Static (non-animated) shadow version if you still want it */
+    .portal-animation {
+      box-shadow: 0 0 25px rgba(232, 121, 249, 0.5),
+                  0 0 40px rgba(232, 121, 249, 0.4);
+    }
+
+    /* ✅ Glow that html2canvas will reliably capture: radial gradient background */
+   .portal-glow-bg {
+  position: absolute;
+  inset: 0;                  /* match the pill size exactly */
+  border-radius: inherit;    /* use same radius as parent (pill) */
+  pointer-events: none;
+  z-index: 0;
+
+  /* pill-shaped glow (ellipse, not circle) */
+  background: radial-gradient(
+    ellipse at center,
+    rgba(232, 121, 249, 0.60) 0%,
+    rgba(232, 121, 249, 0.35) 45%,
+    rgba(232, 121, 249, 0.10) 75%,
+    rgba(232, 121, 249, 0.0) 100%
+  );
 }
-</script>
+
+
+    .portal-capsule {
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+
+  <!-- Import map for the browser-based setup -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://aistudiocdn.com/react@^19.2.0",
+      "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+      "react/": "https://aistudiocdn.com/react@^19.2.0/",
+      "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+      "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+      "firebase/storage": "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js",
+      "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
+      "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1"
+    }
+  }
+  </script>
 </head>
 <body class="text-white">
-    <div id="root"></div>
-    <script type="module" src="index.tsx"></script>
+  <div id="root"></div>
+  <script type="module" src="index.tsx"></script>
 </body>
 </html>
