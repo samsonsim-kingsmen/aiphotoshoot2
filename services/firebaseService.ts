@@ -3,13 +3,13 @@ import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage"
 
 // TODO: Replace with your own Firebase project configuration
 const firebaseConfig = {
- apiKey: "AIzaSyAyCg4J3Q3J-KjqYhYhzeG18Dr3GG6MlEk",
-  authDomain: "genaiphotobooth-60f36.firebaseapp.com",
-  projectId: "genaiphotobooth-60f36",
-  storageBucket: "genaiphotobooth-60f36.firebasestorage.app",
-  messagingSenderId: "493583659263",
-  appId: "1:493583659263:web:f2069e14cc0de1bdb71cca",
-  measurementId: "G-6XWHQ225S6"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Initialize Firebase
