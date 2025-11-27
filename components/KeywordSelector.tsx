@@ -145,8 +145,8 @@ const KeywordSelector = ({ onKeywordsSelect }: KeywordSelectorProps) => {
 
         {/* 🔸 Enter button — 5% from bottom */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 w-3/5"
-          style={{ bottom: "5%" }}
+          className="absolute left-1/2 -translate-x-1/2 w-2.5/5"
+          style={{ bottom: "10%" }}
         >
           <Button
             onClick={handleSubmit}
@@ -158,7 +158,7 @@ const KeywordSelector = ({ onKeywordsSelect }: KeywordSelectorProps) => {
             }`}
             aria-label="Proceed to camera"
           >
-            <CameraIcon className="w-5 h-5 mr-2" />
+            <CameraIcon className="w-12 h-5 mr-2" />
             Take a picture
           </Button>
         </div>

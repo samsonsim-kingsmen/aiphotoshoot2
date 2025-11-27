@@ -226,7 +226,7 @@ const LandingPage = ({ onEnter }: LandingPageProps) => {
 
         {/* ✅ Use imported title image */}
         <img src={titleImg} alt="Title" />
-        <p className="text-gray-400 max-w-md mb-10">Step through the portal.</p>
+        <p className="text-white max-w-md mt-6 mb-10">Step through the portal.</p>
 
         <Button
           onClick={onEnter}

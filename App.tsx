@@ -204,6 +204,7 @@ const App = () => {
             retroTheme={winningThemes!.retro}
             futureTheme={winningThemes!.future}
             onCapture={handleCompositeUpload}
+            onRetake={handleRetake}          // ✅ now wired
             error={error}
           />
         );
