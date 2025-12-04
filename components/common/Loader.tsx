@@ -18,8 +18,8 @@ const Loader = ({ messages }: LoaderProps) => {
   
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-black">
-      <ClockIcon className="w-16 h-16 text-white animate-spin mb-4" />
-      <p className="text-xl font-semibold text-white font-orbitron text-center px-4">
+      <ClockIcon className="w-40 h-40 text-white animate-spin mb-20" />
+      <p className="text-xl font-semibold text-white font-orbitron text-center px-4" style={{fontSize:"2vh"}}>
         {messages[currentMessageIndex]}
       </p>
     </div>

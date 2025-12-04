@@ -1,6 +1,6 @@
 import { useRef, useMemo, useEffect } from "react";
 import Button from "./common/Button";
-import { SparklesIcon, RetakeIcon } from "./common/Icon";
+import { SparklesIcon, RetakeIcon, StartOverIcon, CameraIcon } from "./common/Icon";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -157,6 +157,19 @@ const PhotoEditor = ({
 }: PhotoEditorProps) => {
   return (
     <div className="w-full h-full relative bg-black overflow-hidden">
+      {/* 📏 Match CTA button styling from CameraView */}
+      <style>{`
+        .capture-cta {
+          font-size: clamp(1rem, 2.4vh, 1.6rem);
+          padding-block: 1.4vh;
+        }
+
+        .capture-cta-icon {
+          width: 3vh;
+          height: 3vh;
+        }
+      `}</style>
+
       {/* 🔮 Shader background (same as CameraView) */}
       <Canvas
         className="absolute inset-0 z-0"
@@ -181,26 +194,39 @@ const PhotoEditor = ({
       </div>
 
       {/* 🔘 Controls */}
-      <div className="absolute bottom-[10%] left-0 right-0 p-4 flex flex-col sm:flex-row justify-center items-center gap-4 z-20">
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-[10%] z-20 flex flex-col sm:flex-row items-center gap-4">
         {error && (
           <p className="text-red-300 text-center text-sm mb-2 sm:mb-0 sm:absolute sm:-top-8">
             {error}
           </p>
         )}
 
-        <Button
-          onClick={onRetake}
-          variant="secondary"
-          aria-label="Retake photo"
-        >
-          <RetakeIcon className="w-5 h-5 mr-2" />
-          Retake
-        </Button>
+        {/* Retake button — same width & label size logic as Capture */}
+  
+        <div style={{ width: "10vh" }}>
+          <Button
+            onClick={onRetake}
+            aria-label="Journey through time"
+            className="capture-cta w-full"
+            style={{ fontSize: "2vh" }}
+          >
+         
+              <StartOverIcon  className="capture-cta-icon mr-2" />
+          </Button>
+        </div>
 
-        <Button onClick={onGenerate} aria-label="Journey through time">
-          <SparklesIcon className="w-5 h-5 mr-2" />
-          Journey through time
-        </Button>
+        {/* Generate button — same width & label size logic as Capture */}
+        <div style={{ width: "30vh" }}>
+          <Button
+            onClick={onGenerate}
+            aria-label="Journey through time"
+            className="capture-cta w-full"
+            style={{ fontSize: "2vh" }}
+          >
+            <SparklesIcon className="capture-cta-icon mr-2" />
+            Journey through time
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -3,12 +3,13 @@ import Button from "./common/Button";
 import { CameraIcon, NoCameraIcon } from "./common/Icon";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import cutoutImg from "/cutout.png";
 
 interface CameraViewProps {
   onCapture: (imageDataUrl: string) => void;
 }
 
-/* ========================= SHADERS ========================= */
+/* ========================= SHADERS (unchanged) ========================= */
 
 const vert = /* glsl */ `
   varying vec2 vUv;
@@ -73,34 +74,26 @@ const frag = /* glsl */ `
     float n = fbm(uv * 1.2 + vec2(t * 0.2, -t * 0.15));
     float v = clamp(n * 0.5 + 0.5, 0.0, 1.0);
 
-    // Palette
     vec3 deepBlue   = vec3(0.02, 0.06, 0.16);
     vec3 midBlue    = vec3(0.05, 0.20, 0.50);
-    vec3 softCyan   = vec3(0.10, 0.80, 1.00);   // more blue than green
-    vec3 warmOrange = vec3(1.20, 0.45, 0.08);   // rich orange, not yellow
+    vec3 softCyan   = vec3(0.10, 0.80, 1.00);
+    vec3 warmOrange = vec3(1.20, 0.45, 0.08);
     vec3 whiteGlow  = vec3(1.0);
 
-    // Blobby bands
     float lowBand  = smoothstep(0.05, 0.45, v);
     float midBand  = smoothstep(0.25, 0.75, v);
     float highBand = smoothstep(0.55, 1.0, v);
 
-    // Start: deep blue to mid blue
     vec3 col = mix(deepBlue, midBlue, lowBand);
-
-    // Midtones: overlay orange without killing the blue completely
     float orangeMask = smoothstep(0.30, 0.70, v);
     col = mix(col, warmOrange, orangeMask * 0.45);
 
-    // Orange "bloom" in mid band
     float midBlob = exp(-4.0 * pow(v - 0.5, 2.0));
     col += warmOrange * midBlob * 0.22;
 
-    // Highlights: push towards cyan/white
     vec3 cyanBand = mix(softCyan, whiteGlow, smoothstep(0.75, 1.0, v));
     col = mix(col, cyanBand, highBand * 0.55);
 
-    // Radial falloff to keep edges darker
     float r = length(uv);
     float radial = smoothstep(1.05, 0.2, r);
     col *= (0.6 + radial * 0.7);
@@ -152,6 +145,9 @@ const CameraView = ({ onCapture }: CameraViewProps) => {
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // overlay + text visibility
+  const [showOverlay, setShowOverlay] = useState(false);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -213,10 +209,15 @@ const CameraView = ({ onCapture }: CameraViewProps) => {
     ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
     onCapture(canvas.toDataURL("image/jpeg"));
+
+    setShowOverlay(false);
   };
 
   const handleCaptureClick = () => {
     if (countdown !== null) return;
+
+    // show overlay + text only when Capture is pressed
+    setShowOverlay(true);
 
     let count = 5;
     setCountdown(count);
@@ -243,6 +244,18 @@ const CameraView = ({ onCapture }: CameraViewProps) => {
 
   return (
     <div className="w-full h-full relative bg-black overflow-hidden">
+      <style>{`
+        .capture-cta {
+          font-size: clamp(1rem, 2.4vh, 1.6rem);
+          padding-block: 1.4vh;
+        }
+
+        .capture-cta-icon {
+          width: 3vh;
+          height: 3vh;
+        }
+      `}</style>
+
       {/* 🔮 Shader background */}
       <Canvas
         className="absolute inset-0 z-0"
@@ -255,8 +268,17 @@ const CameraView = ({ onCapture }: CameraViewProps) => {
         <GlowPlane />
       </Canvas>
 
-      {/* 📷 Camera video */}
-      <div className="absolute inset-0 flex items-end justify-center pointer-events-none z-20">
+      {/* 📷 Text + Camera video + overlay */}
+      <div className="absolute inset-0 flex flex-col items-center justify-end pointer-events-none z-20">
+        {/* 🔹 Text ABOVE frame, 10% smaller */}
+        {showOverlay && (
+          <div className="mb-[2vh]">
+            <span className="text-white font-orbitron text-[2.9vh] drop-shadow-lg">
+              Stand in frame
+            </span>
+          </div>
+        )}
+
         <div className="relative h-[65%] aspect-[9/16] mb-[45%] overflow-hidden rounded-xl pointer-events-auto">
           <video
             ref={videoRef}
@@ -264,24 +286,46 @@ const CameraView = ({ onCapture }: CameraViewProps) => {
             playsInline
             className="w-full h-full object-cover -scale-x-100"
           />
+
+          {/* 🔹 cutout.png only rendered when showOverlay = true
+              5% bigger, moved up 3% */}
+          {showOverlay && (
+            <img
+              src={cutoutImg}
+              alt="Stand in frame guide"
+              className="absolute inset-0 w-full h-full object-contain transition-opacity duration-500 opacity-100"
+              style={{
+                transform: "translateY(4%) scale(1.3)",
+                transformOrigin: "top center",
+              }}
+            />
+          )}
         </div>
       </div>
 
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* ⏱ Countdown */}
       {countdown !== null && countdown > 0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-30">
-          <span className="text-9xl text-white font-orbitron drop-shadow-lg">
+          <span className="text-9xl text-white font-orbitron drop-shadow-lg -translate-y-[12vh]">
             {countdown}
           </span>
         </div>
       )}
 
-      {/* 🔘 Button */}
-      <div className="absolute bottom-[10%] left-0 right-0 p-4 flex justify-center z-30">
-        <Button onClick={handleCaptureClick} disabled={countdown !== null}>
-          <CameraIcon className="w-6 h-6 mr-2" />
+      {/* 🔘 Capture Button */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2 z-30"
+        style={{ bottom: "10vh", width: "25vh", fontSize: "4vh" }}
+      >
+        <Button
+          onClick={handleCaptureClick}
+          disabled={countdown !== null}
+          className="capture-cta w-full"
+          aria-label="Capture photo"
+          style={{ fontSize: "2vh" }}
+        >
+          <CameraIcon className="capture-cta-icon mr-2" />
           Capture
         </Button>
       </div>

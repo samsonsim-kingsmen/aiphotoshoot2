@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import html2canvas from "html2canvas";
-import { ClockIcon, DownloadIcon, RetakeIcon } from "./common/Icon";
+import { ClockIcon, DownloadIcon, StartOverIcon } from "./common/Icon";
 import Button from "./common/Button";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -16,7 +16,8 @@ interface DualResultViewProps {
   retroTheme: string;
   futureTheme: string;
   onCapture: (compositeImage: string) => void;
-  onRetake: () => void; // ✅ new prop
+  /** ⬇️ now used for "regenerate AI transformation" instead of going back to camera */
+  onStartOver: () => void;
   error: string | null;
 }
 
@@ -41,7 +42,11 @@ const VerticalText = ({
         .toUpperCase()
         .split("")
         .map((char, index) => (
-          <span key={index} className="leading-none tracking-widest">
+          <span
+            key={index}
+            className="leading-none tracking-widest"
+            style={{ fontSize: "1.5vh" }}
+          >
             {char}
           </span>
         ))}
@@ -117,31 +122,25 @@ const frag = /* glsl */ `
     // Palette
     vec3 deepBlue   = vec3(0.02, 0.06, 0.16);
     vec3 midBlue    = vec3(0.05, 0.20, 0.50);
-    vec3 softCyan   = vec3(0.10, 0.80, 1.00);   // more blue than green
-    vec3 warmOrange = vec3(1.20, 0.45, 0.08);   // rich orange, not yellow
+    vec3 softCyan   = vec3(0.10, 0.80, 1.00);
+    vec3 warmOrange = vec3(1.20, 0.45, 0.08);
     vec3 whiteGlow  = vec3(1.0);
 
-    // Blobby bands
     float lowBand  = smoothstep(0.05, 0.45, v);
     float midBand  = smoothstep(0.25, 0.75, v);
     float highBand = smoothstep(0.55, 1.0, v);
 
-    // Start: deep blue to mid blue
     vec3 col = mix(deepBlue, midBlue, lowBand);
 
-    // Midtones: overlay orange without killing the blue completely
     float orangeMask = smoothstep(0.30, 0.70, v);
     col = mix(col, warmOrange, orangeMask * 0.45);
 
-    // Orange "bloom" in mid band
     float midBlob = exp(-4.0 * pow(v - 0.5, 2.0));
     col += warmOrange * midBlob * 0.22;
 
-    // Highlights: push towards cyan/white
     vec3 cyanBand = mix(softCyan, whiteGlow, smoothstep(0.75, 1.0, v));
     col = mix(col, cyanBand, highBand * 0.55);
 
-    // Radial falloff to keep edges darker
     float r = length(uv);
     float radial = smoothstep(1.05, 0.2, r);
     col *= (0.6 + radial * 0.7);
@@ -193,7 +192,7 @@ const DualResultView = ({
   retroTheme,
   futureTheme,
   onCapture,
-  onRetake,
+  onStartOver,
   error,
 }: DualResultViewProps) => {
   const [isCapturing, setIsCapturing] = useState(false);
@@ -205,12 +204,21 @@ const DualResultView = ({
     setIsCapturing(true);
 
     try {
-      const canvas = await html2canvas(captureRef.current, {
+      const node = captureRef.current;
+      const rect = node.getBoundingClientRect();
+
+      // 🧮 Scale so width ~1080px, keeping aspect ratio (~9:16)
+      const targetWidth = 1080;
+      const scale = targetWidth / rect.width;
+
+      const canvas = await html2canvas(node, {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
+        scale, // higher scale = higher resolution
       });
 
+      // canvas.width ≈ 1080, canvas.height ≈ 1920
       const imageDataUrl = canvas.toDataURL("image/jpeg", 0.9);
       onCapture(imageDataUrl);
     } catch (err) {
@@ -220,13 +228,24 @@ const DualResultView = ({
     }
   };
 
-  // ✅ White border re-added around capsules
   const capsuleBaseClasses =
     "w-full h-full rounded-full bg-cover bg-center transition-all duration-300 ease-in-out overflow-hidden relative border-4 border-white/60";
 
   return (
     <div className="w-full h-full relative bg-black overflow-hidden">
-      {/* 🔮 Shader background (IDENTICAL pattern to PhotoEditor) */}
+      {/* CTA styles for buttons */}
+      <style>{`
+        .capture-cta {
+          font-size: clamp(1rem, 2.4vh, 1.6rem);
+          padding-block: 1.4vh;
+        }
+        .capture-cta-icon {
+          width: 3vh;
+          height: 3vh;
+        }
+      `}</style>
+
+      {/* Shader background */}
       <Canvas
         className="absolute inset-0 z-0"
         orthographic
@@ -238,7 +257,7 @@ const DualResultView = ({
         <GlowPlane />
       </Canvas>
 
-      {/* 📦 Capture area centered on top of shader, shifted up slightly */}
+      {/* Capture area */}
       <div className="absolute inset-0 flex items-center justify-center z-10 transform -translate-y-[8%]">
         <div
           ref={captureRef}
@@ -250,8 +269,11 @@ const DualResultView = ({
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* Title */}
-          <div className="absolute top-6 left-0 right-0 z-20 flex justify-center transform -translate-y-[15%]">
+          {/* Title with vh-based Y position */}
+          <div
+            className="absolute left-0 right-0 z-20 flex justify-center"
+            style={{ top: "1vh" }} // ⬅ tweak this value to move it up/down
+          >
             <img src={titleImg} className="transform scale-[0.7]" alt="Title" />
           </div>
 
@@ -262,11 +284,14 @@ const DualResultView = ({
               className="absolute w-[41.4%] h-[50.6%] -translate-x-[35%] -translate-y-[15%] scale-85"
               aria-label="Retro-themed image on the left"
             >
-              {/* Retro label — smaller + closer */}
-              <div className="absolute top-1/2 -left-8 -translate-y-1/2">
+              {/* Retro label — with vh-based horizontal offset */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2"
+                style={{ left: "-3vh" }}
+              >
                 <VerticalText
                   text={retroTheme}
-                  className="text-white font-orbitron text-sm opacity-80"
+                  className="text-white font-orbitron opacity-80"
                 />
               </div>
 
@@ -290,11 +315,14 @@ const DualResultView = ({
                 />
               </div>
 
-              {/* Future label — smaller + closer */}
-              <div className="absolute top-1/2 -right-8 -translate-y-1/2">
+              {/* Future label — with vh-based horizontal offset */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2"
+                style={{ right: "-3vh" }}
+              >
                 <VerticalText
                   text={futureTheme}
-                  className="text-white font-orbitron text-sm opacity-80"
+                  className="text-white font-orbitron opacity-80"
                 />
               </div>
             </div>
@@ -311,35 +339,47 @@ const DualResultView = ({
         </div>
       </div>
 
-      {/* 🔘 Retake + Download buttons */}
+      {/* Start Over (Regenerate) + Download buttons */}
       <div className="absolute left-1/2 -translate-x-1/2 bottom-[10%] z-20 flex flex-col items-center gap-2">
         {error && (
           <p className="text-red-300 text-center text-sm mb-1">{error}</p>
         )}
 
-        <div className="flex gap-4 transform scale-[0.8]">
-          <Button
-            onClick={onRetake}
-            variant="secondary"
-            aria-label="Retake photo"
-          >
-            <RetakeIcon className="w-5 h-5 mr-2" />
-            Retake
-          </Button>
+        <div className="flex gap-4 items-center">
+          {/* Start Over button — now triggers AI regeneration */}
+          <div style={{ width: "10vh" }}>
+            <Button
+              onClick={onStartOver}
+              variant="secondary"
+              aria-label="Regenerate AI transformation"
+              className="capture-cta w-full"
+              style={{ fontSize: "2vh" }}
+            >
+              <StartOverIcon className="capture-cta-icon mr-2" />
+            </Button>
+          </div>
 
-          <Button onClick={handleCaptureClick} disabled={isCapturing}>
-            {isCapturing ? (
-              <>
-                <ClockIcon className="w-5 h-5 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <DownloadIcon className="w-5 h-5 mr-2" />
-                Download
-              </>
-            )}
-          </Button>
+          {/* Download button — 20vh width */}
+          <div style={{ width: "20vh" }}>
+            <Button
+              onClick={handleCaptureClick}
+              disabled={isCapturing}
+              className="capture-cta w-full"
+              style={{ fontSize: "2vh" }}
+            >
+              {isCapturing ? (
+                <>
+                  <ClockIcon className="capture-cta-icon mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <DownloadIcon className="capture-cta-icon mr-2" />
+                  Download
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

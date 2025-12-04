@@ -2,8 +2,6 @@ import { useState } from "react";
 import { keywordMap } from "../services/geminiService";
 import Button from "./common/Button";
 import { CameraIcon } from "./common/Icon";
-
-// ✅ Import your video correctly
 import keywordBg from "/keywordbg.mp4";
 
 interface KeywordSelectorProps {
@@ -23,23 +21,20 @@ const KeywordSelector = ({ onKeywordsSelect }: KeywordSelectorProps) => {
 
   const handleKeywordClick = (keyword: string) => {
     setSelectedKeywords((prev) => {
-      if (prev.includes(keyword)) {
-        return prev.filter((k) => k !== keyword);
-      }
-      if (prev.length < 3) {
-        return [...prev, keyword];
-      }
-      return prev;
+      if (prev.includes(keyword)) return prev.filter((k) => k !== keyword);
+
+      if (prev.length < 3) return [...prev, keyword];
+
+      const trimmed = prev.slice(0, 2);
+      return [...trimmed, keyword];
     });
   };
 
   const handleSubmit = () => {
-    if (selectedKeywords.length === 3) {
-      onKeywordsSelect(selectedKeywords);
-    }
+    if (selectedKeywords.length === 3) onKeywordsSelect(selectedKeywords);
   };
 
-  // Group keywords into rows following the pattern [2,3,2,2,3,2]
+  // Group keywords into rows
   let startIndex = 0;
   const groupedKeywords: string[][] = rowPattern.map((count) => {
     const row = keywords.slice(startIndex, startIndex + count);
@@ -49,8 +44,7 @@ const KeywordSelector = ({ onKeywordsSelect }: KeywordSelectorProps) => {
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-black">
-
-      {/* 🔹 Video background (using imported file) */}
+      {/* Background video */}
       <video
         className="absolute inset-0 w-full h-full object-cover"
         src={keywordBg}
@@ -60,78 +54,87 @@ const KeywordSelector = ({ onKeywordsSelect }: KeywordSelectorProps) => {
         playsInline
       />
 
-      {/* Overlay for contrast */}
+      {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/50" />
 
-      {/* 🔹 Foreground content */}
+      {/* Foreground */}
       <div className="relative z-10 w-full h-full text-white">
+        <style>{`
+          .keyword-title { font-size: clamp(1.6rem, 4vh, 3rem); }
+          .keyword-sub { font-size: clamp(1rem, 2vh, 1.6rem); }
+          .keyword-chip-container { width: min(60vh, 700px); }
+          .keyword-grid { row-gap: 2vh; }
 
-        {/* 🔸 Title — 5% from top, wider */}
+          .keyword-chip {
+            font-size: clamp(0.9rem, 2vh, 1.3rem);
+            padding-inline: 2.2vh;
+            padding-block: 1vh;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(8px);
+          }
+
+          .keyword-cta-wrapper { width: 40vh; }
+          .keyword-cta {
+            font-size: clamp(1rem, 2.4vh, 1.6rem);
+            padding-block: 1.4vh;
+          }
+          .keyword-cta-icon { width: 3vh; height: 3vh; }
+        `}</style>
+
+        {/* TITLE */}
         <div
           className="absolute left-1/2 -translate-x-1/2 text-center"
-          style={{ top: "5%", width: "90%" }}
+          style={{ top: "5vh", width: "90%" }}
         >
-          <h2 className="text-2xl sm:text-3xl font-orbitron">
+          <h2
+            className="keyword-title font-orbitron"
+            style={{ fontSize: "4vh" }}
+          >
             Who Were You Then, Who Will You Be?
           </h2>
-          <p className="mt-1 text-gray-200">
+          <p
+            className="keyword-sub mt-1 text-gray-300"
+            style={{ fontSize: "2vh" }}
+          >
             Choose 3 words that describe your style.
           </p>
         </div>
 
-        {/* 🔸 Center block of keyword rows */}
+        {/* KEYWORD GRID */}
         <div
           className="absolute top-1/2 left-1/2 w-full flex flex-col items-center justify-center"
-          style={{ transform: "translate(-50%, -50%)" }}
+          style={{ transform: "translate(-50%, -58%)" }}
         >
-          <div
-            className="flex flex-col items-center justify-center gap-3 sm:gap-4"
-            style={{ width: "60%" }}
-          >
+          <div className="keyword-chip-container keyword-grid flex flex-col items-center justify-center">
             {groupedKeywords.map((row, rowIndex) => {
-              const offsetX = rowOffsets[rowIndex] ?? 0;
+              const offsetX = rowOffsets[rowIndex];
 
               return (
                 <div
                   key={rowIndex}
-                  className="flex justify-center gap-2 sm:gap-3"
-                  style={{
-                    transform: `translateX(${offsetX}px)`,
-                    transition: "transform 0.3s ease",
-                  }}
+                  className="flex justify-center gap-6"
+                  style={{ transform: `translateX(${offsetX}px)` }}
                 >
                   {row.map((keyword) => {
                     const isSelected = selectedKeywords.includes(keyword);
-                    const isDisabled =
-                      !isSelected && selectedKeywords.length >= 3;
 
                     return (
                       <button
                         key={keyword}
                         onClick={() => handleKeywordClick(keyword)}
-                        disabled={isDisabled}
                         className={`
-                          relative px-3 py-1.5 sm:px-4 sm:py-2 
-                          text-sm sm:text-base font-medium rounded-full border 
-                          transition-all duration-300 transform hover:scale-110
-                          backdrop-blur-md
+                          keyword-chip rounded-full border relative 
+                          
                           ${
                             isSelected
-                              ? `border-white text-white bg-white/20 
-                                shadow-[0_0_10px_3px_rgba(255,255,255,0.9),
-                                        0_0_25px_10px_rgba(255,255,255,0.6),
-                                        0_0_50px_20px_rgba(255,255,255,0.4)]`
-                              : `border-white/60 text-white bg-white/5 hover:bg-white/10
-                                shadow-[0_0_6px_2px_rgba(255,255,255,0.6),
-                                        0_0_15px_6px_rgba(255,255,255,0.4),
-                                        0_0_30px_10px_rgba(255,255,255,0.2)]`
-                          }
-                          ${
-                            isDisabled
-                              ? "opacity-40 cursor-not-allowed"
-                              : "cursor-pointer"
+                              ? "border-white bg-white/25 text-white shadow-[0_0_15px_4px_rgba(255,255,255,0.9),0_0_35px_12px_rgba(255,255,255,0.7)] scale-110"
+                              : "border-white/40 bg-white/10 text-white/80 opacity-65 hover:opacity-80 hover:border-white/60 hover:bg-white/20 hover:scale-105"
                           }
                         `}
+                        style={{
+                          width: "13vh",
+                          fontSize: "2vh",
+                        }}
                       >
                         {keyword}
                       </button>
@@ -143,26 +146,26 @@ const KeywordSelector = ({ onKeywordsSelect }: KeywordSelectorProps) => {
           </div>
         </div>
 
-        {/* 🔸 Enter button — 5% from bottom */}
+        {/* CTA BUTTON */}
         <div
-          className="absolute left-1/2 -translate-x-1/2 w-2.5/5"
-          style={{ bottom: "10%" }}
+          className="keyword-cta-wrapper absolute left-1/2 -translate-x-1/2"
+          style={{ bottom: "10vh", width: "30vh" }}
         >
           <Button
             onClick={handleSubmit}
             disabled={selectedKeywords.length !== 3}
-            className={`w-full ${
+            style={{ fontSize: "2vh" }}
+            className={`keyword-cta w-full ${
               selectedKeywords.length !== 3
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
             aria-label="Proceed to camera"
           >
-            <CameraIcon className="w-12 h-5 mr-2" />
+            <CameraIcon className="keyword-cta-icon mr-5" />
             Take a picture
           </Button>
         </div>
-
       </div>
     </div>
   );

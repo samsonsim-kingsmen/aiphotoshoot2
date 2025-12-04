@@ -4,7 +4,7 @@ import { SparklesIcon } from "./common/Icon";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-// ✅ Import assets from public (or src/assets if you move them there)
+// Assets
 import screensaverVideo from "/screensaver.mp4";
 import titleImg from "/Title.png";
 
@@ -20,6 +20,7 @@ const vert = /* glsl */ `
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
+
 const frag = /* glsl */ `
   precision highp float;
 
@@ -40,6 +41,7 @@ const frag = /* glsl */ `
   uniform int   uGlowSteps;
 
   vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+
   float snoise(vec2 v){
     const vec4 C = vec4(0.211324865405187, 0.366025403784439,
              -0.577350269189626, 0.024390243902439);
@@ -119,15 +121,14 @@ const frag = /* glsl */ `
   }
 `;
 
-/* ================= Plane (Video) ================= */
+/* ============== Plane (Video Shader Background) ============== */
 function SimplexCirclePlane() {
   const matRef = useRef<THREE.ShaderMaterial | null>(null);
   const { viewport, size } = useThree();
 
-  // ✅ Create video element and use imported src
   const video = useMemo(() => {
     const el = document.createElement("video");
-    el.src = screensaverVideo; // ← use imported path
+    el.src = screensaverVideo;
     el.crossOrigin = "anonymous";
     el.loop = true;
     el.muted = true;
@@ -147,29 +148,25 @@ function SimplexCirclePlane() {
 
   const uniforms = useMemo(
     () => ({
-      uResolution:   { value: new THREE.Vector2(size.width, size.height) },
-      uTime:         { value: 0 },
-      uTexture:      { value: videoTexture },
-      uImageScale:   { value: new THREE.Vector2(0.4, 1.06) },
-      uImageOffset:  { value: new THREE.Vector2(0.0, 0.05) },
-      uMaskLow:      { value: 0.15 },
-      uMaskHigh:     { value: 0.35 },
-      uRingColorA:   { value: new THREE.Color("#4cc9f0") },
-      uRingColorB:   { value: new THREE.Color("#ff7f11") },
-      uRingWidth:    { value: 0.02 },
+      uResolution: { value: new THREE.Vector2(size.width, size.height) },
+      uTime: { value: 0 },
+      uTexture: { value: videoTexture },
+      uImageScale: { value: new THREE.Vector2(0.4, 1.06) },
+      uImageOffset: { value: new THREE.Vector2(0.0, 0.05) },
+      uMaskLow: { value: 0.15 },
+      uMaskHigh: { value: 0.35 },
+      uRingColorA: { value: new THREE.Color("#4cc9f0") },
+      uRingColorB: { value: new THREE.Color("#ff7f11") },
+      uRingWidth: { value: 0.02 },
       uGlowStrength: { value: 0.8 },
-      uGlowSteps:    { value: 5 },
+      uGlowSteps: { value: 5 },
     }),
     [videoTexture, size.width, size.height]
   );
 
   useEffect(() => {
-    video.play().catch((err) => {
-      console.warn("Autoplay blocked:", err);
-    });
-    return () => {
-      video.pause();
-    };
+    video.play().catch(() => {});
+    return () => video.pause();
   }, [video]);
 
   useEffect(() => {
@@ -178,9 +175,7 @@ function SimplexCirclePlane() {
 
   useFrame(({ clock }) => {
     uniforms.uTime.value = clock.getElapsedTime();
-    if (video.readyState >= 2) {
-      videoTexture.needsUpdate = true;
-    }
+    if (video.readyState >= 2) videoTexture.needsUpdate = true;
   });
 
   return (
@@ -196,7 +191,7 @@ function SimplexCirclePlane() {
   );
 }
 
-/* ================= Page ================= */
+/* ============== FULL PAGE ============== */
 const LandingPage = ({ onEnter }: LandingPageProps) => {
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
@@ -220,27 +215,55 @@ const LandingPage = ({ onEnter }: LandingPageProps) => {
             to { opacity: 1; transform: scale(1); }
           }
           .animate-fadeIn { animation: fadeIn 1s ease-in-out; }
+
+          /* CTA consistency with all other screens */
+          .capture-cta {
+            font-size: clamp(1rem, 2.4vh, 1.6rem);
+            padding-block: 1.4vh;
+          }
+          .capture-cta-icon {
+            width: 3vh;
+            height: 3vh;
+          }
         `}</style>
 
         <div className="relative mb-8 animate-fadeIn" />
 
-        {/* ✅ Use imported title image */}
-        <img src={titleImg} alt="Title" />
-        <p className="text-white max-w-md mt-6 mb-10">Step through the portal.</p>
-
-        <Button
-          onClick={onEnter}
-          className={`
-            px-10 py-3 rounded-full border border-white text-white font-semibold
-            bg-white/10 hover:bg-white/15
-            transition-all duration-300 transform hover:scale-110
-            shadow-[0_0_10px_3px_rgba(255,255,255,0.9),
-                    0_0_25px_10px_rgba(255,255,255,0.7),
-                    0_0_50px_20px_rgba(255,255,255,0.5)]
-          `}
+        {/* Title */}
+        <img src={titleImg} alt="Title" style={{ width: "100vh" }} />
+        <p
+          className="text-white max-w-2xl mt-6 mb-10"
+          style={{ fontSize: "2vh" }}
         >
-          Enter
-        </Button>
+          Step through the portal
+        </p>
+
+        {/* CTA button (15vh wide) */}
+        <div style={{ width: "15vh", marginTop: "1vh" }}>
+          <Button
+            onClick={onEnter}
+            className="
+              capture-cta w-full
+              rounded-full border border-white text-white font-semibold
+              bg-white/10 hover:bg-white/15
+              transition-all duration-300 transform hover:scale-110
+              shadow-[0_0_10px_3px_rgba(255,255,255,0.9),
+                      0_0_25px_10px_rgba(255,255,255,0.7),
+                      0_0_50px_20px_rgba(255,255,255,0.5)]
+            "
+            style={{ fontSize: "2vh", padding: "2vh" }}
+          >
+            Enter
+          </Button>
+        </div>
+
+        {/* Bottom-center credit */}
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white opacity-70"
+          style={{ fontSize: "1.6vh", letterSpacing: "0.05em" }}
+        >
+          Created by KR+D
+        </div>
       </div>
     </div>
   );

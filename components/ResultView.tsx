@@ -147,6 +147,19 @@ const ResultView = ({ generatedImage, downloadUrl, onStartOver }: ResultViewProp
 
   return (
     <div className="w-full h-full relative overflow-hidden bg-black">
+      {/* 📏 Match CTA button styling from PhotoEditor / DualResult */}
+      <style>{`
+        .capture-cta {
+          font-size: clamp(1rem, 2.4vh, 1.6rem);
+          padding-block: 1.4vh;
+        }
+
+        .capture-cta-icon {
+          width: 3vh;
+          height: 3vh;
+        }
+      `}</style>
+
       {/* 🔮 Shader background (same as other screens) */}
       <Canvas
         className="absolute inset-0 z-0"
@@ -166,33 +179,36 @@ const ResultView = ({ generatedImage, downloadUrl, onStartOver }: ResultViewProp
           <img
             src={generatedImage}
             alt="Generated fashion photo"
-            className="max-w-full max-h-full object-contain   shadow-lg scale-[0.7]"
+            className="max-w-full max-h-full object-contain shadow-lg scale-[0.7]"
           />
         </div>
 
         {/* Footer containing QR and Button — shifted up a little */}
-        <div className="flex-shrink-0 w-full relative p-4 flex flex-col items-center justify-center gap-3 -translate-y-[50%]">
+        <div className="flex-shrink-0   relative p-4 flex flex-col items-center justify-center gap-3 -translate-y-[45%]">
           {/* QR code + text — moved further up */}
-          <div className="flex flex-col items-center justify-center gap-3 mb-[3%] -translate-y-[20%]">
+          <div className="flex flex-col items-center justify-center gap-3 mb-[3%] -translate-y-[20%]" style={{fontSize:"2vh"}}>
             <p className="font-semibold text-white">Scan to Download</p>
             <div className="bg-white p-2 rounded-lg shadow-lg">
               <img
                 src={qrCodeUrl}
                 alt="QR code to download image"
-                width="82"
-                height="82"
+                width="130vh"
+                height="130vh"
               />
             </div>
           </div>
 
-          {/* Button — same position tweak as before */}
-          <div className="-translate-y-[3%]">
+          {/* Start Over button — 10vh width, icon-only CTA style */}
+          <div className="-translate-y-[3%]" style={{ width: "25vh" }}>
             <Button
               onClick={onStartOver}
               variant="secondary"
               aria-label="Start over"
+              className="capture-cta w-full"
+              style={{ fontSize: "2vh"  }}
             >
-              <StartOverIcon className="w-5 h-5 mr-2" />
+              <StartOverIcon className="capture-cta-icon mr-5" /> 
+       
               Start Over
             </Button>
           </div>
